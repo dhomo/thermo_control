@@ -23,7 +23,7 @@ class LLAPSerial
 	boolean bMsgReceived;
 	boolean bNotMyMsgReceived;
 	void SerialEvent();
-    void sendMessage(String sToSend);
+        void sendMessage(String sToSend);
 	void sendMessage(char* sToSend);
 	void sendMessage(char* sToSend, char* valueToSend);
 	void sendMessage(const __FlashStringHelper *ifsh);

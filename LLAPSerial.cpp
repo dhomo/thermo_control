@@ -35,6 +35,7 @@ void LLAPSerial::init()
 {
 	sMessage.reserve(10);
 	bMsgReceived = false;
+        bNotMyMsgReceived = false;
 	deviceId[0] = '-';
 	deviceId[1] = '-';
 }
@@ -43,6 +44,7 @@ void LLAPSerial::init(char* dID)
 {
 	init();
 	bMsgReceived = false;
+        bNotMyMsgReceived = false;
 	setDeviceId(dID);
 	cMessage[12]=0;		// ensure terminated
 }
