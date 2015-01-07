@@ -1,6 +1,6 @@
-// 
-// 
-// 
+//
+//
+//
 
 #include "LLAPSerial.h"
 
@@ -33,55 +33,55 @@ const CTable __code Commands[] = {
 
 void LLAPSerial::init()
 {
-	sMessage.reserve(10);
-	bMsgReceived = false;
-        bNotMyMsgReceived = false;
-	deviceId[0] = '-';
-	deviceId[1] = '-';
+    sMessage.reserve(10);
+    bMsgReceived = false;
+    bNotMyMsgReceived = false;
+    deviceId[0] = '-';
+    deviceId[1] = '-';
 }
 
-void LLAPSerial::init(char* dID)
+void LLAPSerial::init(char *dID)
 {
-	init();
-	bMsgReceived = false;
-        bNotMyMsgReceived = false;
-	setDeviceId(dID);
-	cMessage[12]=0;		// ensure terminated
+    init();
+    bMsgReceived = false;
+    bNotMyMsgReceived = false;
+    setDeviceId(dID);
+    cMessage[12] = 0;   // ensure terminated
 }
 
-void LLAPSerial::processMessage(){
-	//if (LLAP.cMessage[0] != 'a') return; //not needed as already checked
-	if ((cMessage[1] != deviceId[0]) or (cMessage[2] != deviceId[1])) { 
+void LLAPSerial::processMessage()
+{
+    // если сообщение не для нас
+    if ((cMessage[1] != deviceId[0]) or (cMessage[2] != deviceId[1])) {
+        sNotMyMessage = String(&cMessage[1]); // let the main program deal with it
+        bNotMyMsgReceived = true;
+        return;
+    }
 
-		sNotMyMessage = String(&cMessage[1]); // let the main program deal with it
-		bNotMyMsgReceived = true;
-		return;
-	}
-
-	// now we have LLAP.cMessage[3] to LLAP.cMessage[11] as the actual message
-	if (0 == strncmp_P(&cMessage[3],PSTR("HELLO----"),9)) {
-		Serial.print(cMessage);	// echo the message
-	} else if (0 == strncmp_P(&cMessage[3],PSTR("CHDEVID"),7)) {
-	  if (strchr_P(PSTR("-#@?\\*ABCDEFGHIJKLMNOPQRSTUVWXYZ"), cMessage[10]) != 0 && strchr_P(PSTR("-#@?\\*ABCDEFGHIJKLMNOPQRSTUVWXYZ"), cMessage[11]) != 0)
-	  {
-		deviceId[0] = cMessage[10];
-		deviceId[1] = cMessage[11];
-		Serial.print(cMessage);	// echo the message
-	  }
-	} else {
-		sMessage = String(&cMessage[3]); // let the main program deal with it
-		bMsgReceived = true;
-	}
+    // now we have LLAP.cMessage[3] to LLAP.cMessage[11] as the actual message
+    //  if (0 == strncmp_P(&cMessage[3],PSTR("HELLO----"),9)) {
+    //      Serial.print(cMessage); // echo the message
+    //  } else
+    if (0 == strncmp_P(&cMessage[3], PSTR("CHDEVID"), 7)) {
+        if (strchr_P(PSTR("-#@?\\*ABCDEFGHIJKLMNOPQRSTUVWXYZ"), cMessage[10]) != 0 && strchr_P(PSTR("-#@?\\*ABCDEFGHIJKLMNOPQRSTUVWXYZ"), cMessage[11]) != 0) {
+            deviceId[0] = cMessage[10];
+            deviceId[1] = cMessage[11];
+            Serial.print(cMessage); // echo the message
+        }
+    } else {
+        sMessage = String(&cMessage[3]); // let the main program deal with it
+        bMsgReceived = true;
+    }
 }
 
 void LLAPSerial::SerialEvent()
 {
-	if (bMsgReceived or bNotMyMsgReceived) return; //get out if previous message not yet processed
-	if (Serial.available() >= 12) {
+    if (bMsgReceived or bNotMyMsgReceived) return; //get out if previous message not yet processed
+    if (Serial.available() >= 12) {
         // get the new byte:
         char inChar = (char)Serial.peek();
         if (inChar == 'a') {
-            for (byte i = 0; i<12; i++) {
+            for (byte i = 0; i < 12; i++) {
                 inChar = (char)Serial.read();
                 cMessage[i] = inChar;
                 if (i < 11 && Serial.peek() == 'a') {
@@ -89,11 +89,10 @@ void LLAPSerial::SerialEvent()
                     return;
                 }
             }
-            cMessage[12]=0;
+            cMessage[12] = 0;
             processMessage();
-        }
-        else
-            Serial.read();	// throw away the character
+        } else
+            Serial.read();  // throw away the character
     }
 }
 
@@ -102,68 +101,65 @@ void LLAPSerial::sendMessage(String sToSend)
     cMessage[0] = 'a';
     cMessage[1] = deviceId[0];
     cMessage[2] = deviceId[1];
-    for (byte i = 0; i<9; i++) {
-		if (i < sToSend.length())
-			cMessage[i+3] = sToSend.charAt(i);
-		else
-			cMessage[i+3] = '-';
+    for (byte i = 0; i < 9; i++) {
+        if (i < sToSend.length())
+            cMessage[i + 3] = sToSend.charAt(i);
+        else
+            cMessage[i + 3] = '-';
     }
-    
+
     Serial.print(cMessage);
     Serial.flush();
 }
 
-void LLAPSerial::sendMessage(char* sToSend)
+void LLAPSerial::sendMessage(char *sToSend)
 {
-	sendMessage(sToSend,NULL);
+    sendMessage(sToSend, NULL);
 }
 
-void LLAPSerial::sendMessage(char* sToSend, char* valueToSend)
+void LLAPSerial::sendMessage(char *sToSend, char *valueToSend)
 {
     cMessage[0] = 'a';
     cMessage[1] = deviceId[0];
     cMessage[2] = deviceId[1];
-    for (byte i = 0; i<9; i++) {
-		if (i < strlen(sToSend))
-			cMessage[i+3] = sToSend[i];
-		else if (i < strlen(sToSend) + strlen(valueToSend))
-			cMessage[i+3] = valueToSend[i - strlen(sToSend)];
-		else
-			cMessage[i+3] = '-';
+    for (byte i = 0; i < 9; i++) {
+        if (i < strlen(sToSend))
+            cMessage[i + 3] = sToSend[i];
+        else if (i < strlen(sToSend) + strlen(valueToSend))
+            cMessage[i + 3] = valueToSend[i - strlen(sToSend)];
+        else
+            cMessage[i + 3] = '-';
     }
-    
+
     Serial.print(cMessage);
     Serial.flush();
 }
 
 void LLAPSerial::sendMessage(const __FlashStringHelper *ifsh)
 {
-	sendMessage(ifsh,NULL);
+    sendMessage(ifsh, NULL);
 }
 
-void LLAPSerial::sendMessage(const __FlashStringHelper *ifsh, char* valueToSend)
+void LLAPSerial::sendMessage(const __FlashStringHelper *ifsh, char *valueToSend)
 {
-	const char PROGMEM *p = (const char PROGMEM *)ifsh;
-	byte eos = 0;
+    const char PROGMEM *p = (const char PROGMEM *)ifsh;
+    byte eos = 0;
     cMessage[0] = 'a';
     cMessage[1] = deviceId[0];
     cMessage[2] = deviceId[1];
-    for (byte i = 0; i<9; i++) {
-		if (!eos)
-		{
-			cMessage[i+3] = pgm_read_byte(p++);
-			if (!cMessage[i+3]) // end of string
-			{
-				eos = i-3;
-			}
-		}
-		if (eos)
-		{
-			if (i < eos + strlen(valueToSend))
-				cMessage[i+3] = valueToSend[i - eos];
-			else
-				cMessage[i+3] = '-';
-		}
+    for (byte i = 0; i < 9; i++) {
+        if (!eos) {
+            cMessage[i + 3] = pgm_read_byte(p++);
+            if (!cMessage[i + 3]) { // end of string
+                eos = i - 3;
+            }
+        }
+        if (eos) {
+            if (i < eos + strlen(valueToSend))
+                cMessage[i + 3] = valueToSend[i - eos];
+            else
+                cMessage[i + 3] = '-';
+        }
     }
     Serial.print(cMessage);
     Serial.flush();
@@ -171,56 +167,55 @@ void LLAPSerial::sendMessage(const __FlashStringHelper *ifsh, char* valueToSend)
 
 void LLAPSerial::sendInt(String sToSend, int value)
 {
-	char cValue[7];		// long enough for -32767 and the trailing zero
-	itoa(value, cValue,10);
-	byte cValuePtr = 0;
+    char cValue[7];     // long enough for -32767 and the trailing zero
+    itoa(value, cValue, 10);
+    byte cValuePtr = 0;
 
     cMessage[0] = 'a';
     cMessage[1] = deviceId[0];
     cMessage[2] = deviceId[1];
-    for (byte i = 0; i<9; i++) {
-		if (i < sToSend.length())
-			cMessage[i+3] = sToSend.charAt(i);
-		else if (cValuePtr < 7 && cValue[cValuePtr] !=0)
-			cMessage[i+3] = cValue[cValuePtr++];
-		else
-			cMessage[i+3] = '-';
+    for (byte i = 0; i < 9; i++) {
+        if (i < sToSend.length())
+            cMessage[i + 3] = sToSend.charAt(i);
+        else if (cValuePtr < 7 && cValue[cValuePtr] != 0)
+            cMessage[i + 3] = cValue[cValuePtr++];
+        else
+            cMessage[i + 3] = '-';
     }
-    
+
     Serial.print(cMessage);
     Serial.flush();
 }
 
 void LLAPSerial::sendIntWithDP(String sToSend, int value, byte decimalPlaces)
 {
-	char cValue[8];		// long enough for -3276.7 and the trailing zero
-	byte cValuePtr=0;
-	itoa(value, cValue,10);
-	char* cp = &cValue[strlen(cValue)];
-	*(cp+1) = 0;	// new terminator
-	while (decimalPlaces-- && --cp )
-	{
-		*(cp+1) = *cp;
-	}
-	*cp = '.';
+    char cValue[8];     // long enough for -3276.7 and the trailing zero
+    byte cValuePtr = 0;
+    itoa(value, cValue, 10);
+    char *cp = &cValue[strlen(cValue)];
+    *(cp + 1) = 0;  // new terminator
+    while (decimalPlaces-- && --cp ) {
+        *(cp + 1) = *cp;
+    }
+    *cp = '.';
 
     cMessage[0] = 'a';
     cMessage[1] = deviceId[0];
     cMessage[2] = deviceId[1];
-    for (byte i = 0; i<9; i++) {
-		if (i < sToSend.length())
-			cMessage[i+3] = sToSend.charAt(i);
-		else if (cValuePtr < 8 && cValue[cValuePtr] !=0)
-			cMessage[i+3] = cValue[cValuePtr++];
-		else
-			cMessage[i+3] = '-';
+    for (byte i = 0; i < 9; i++) {
+        if (i < sToSend.length())
+            cMessage[i + 3] = sToSend.charAt(i);
+        else if (cValuePtr < 8 && cValue[cValuePtr] != 0)
+            cMessage[i + 3] = cValue[cValuePtr++];
+        else
+            cMessage[i + 3] = '-';
     }
-    
+
     Serial.print(cMessage);
     Serial.flush();
 }
 
-void LLAPSerial::setDeviceId(char* cId)
+void LLAPSerial::setDeviceId(char *cId)
 {
     deviceId[0] = cId[0];
     deviceId[1] = cId[1];
@@ -234,134 +229,138 @@ void LLAPSerial::setDeviceId(char* cId)
 // The watchdog timer is only about 10% accurate - varies between chips
 
 
-#include <avr/sleep.h>
-#include <util/atomic.h>
+// #include <avr/sleep.h>
+// #include <util/atomic.h>
 
-static volatile byte watchdogCounter;
+// static volatile byte watchdogCounter;
 
-void watchdogEvent() {
-    ++watchdogCounter;
-}
+// void watchdogEvent()
+// {
+//     ++watchdogCounter;
+// }
 
-ISR(WDT_vect) { watchdogEvent(); }
+// ISR(WDT_vect)
+// {
+//     watchdogEvent();
+// }
 
 
-void watchdogInterrupts (char mode) {
-    // correct for the fact that WDP3 is *not* in bit position 3!
-    if (mode & bit(3))
-        mode ^= bit(3) | bit(WDP3);
-    // pre-calculate the WDTCSR value, can't do it inside the timed sequence
-    // we only generate interrupts, no reset
-    byte wdtcsr = mode >= 0 ? bit(WDIE) | mode : 0;
-    MCUSR &= ~(1<<WDRF);
-    ATOMIC_BLOCK(ATOMIC_FORCEON) {
-#ifndef WDTCSR
-#define WDTCSR WDTCR
-#endif
-        WDTCSR |= (1<<WDCE) | (1<<WDE); // timed sequence
-        WDTCSR = wdtcsr;
-    }
-}
+// void watchdogInterrupts (char mode)
+// {
+//     // correct for the fact that WDP3 is *not* in bit position 3!
+//     if (mode & bit(3))
+//         mode ^= bit(3) | bit(WDP3);
+//     // pre-calculate the WDTCSR value, can't do it inside the timed sequence
+//     // we only generate interrupts, no reset
+//     byte wdtcsr = mode >= 0 ? bit(WDIE) | mode : 0;
+//     MCUSR &= ~(1 << WDRF);
+//     ATOMIC_BLOCK(ATOMIC_FORCEON) {
+// #ifndef WDTCSR
+// #define WDTCSR WDTCR
+// #endif
+//         WDTCSR |= (1 << WDCE) | (1 << WDE); // timed sequence
+//         WDTCSR = wdtcsr;
+//     }
+// }
 
-/// @see http://www.nongnu.org/avr-libc/user-manual/group__avr__sleep.html
-void powerDown () {
-    byte adcsraSave = ADCSRA;
-    ADCSRA &= ~ bit(ADEN); // disable the ADC
-    // switch off analog comparator - not in Jeelabs' code
-    ACSR = ACSR & 0x7F; // note if using it then we need to switch this back on when we wake.
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    ATOMIC_BLOCK(ATOMIC_FORCEON) {
-        sleep_enable();
-        // sleep_bod_disable(); // can't use this - not in my avr-libc version!
-#ifdef BODSE
-        MCUCR = MCUCR | bit(BODSE) | bit(BODS); // timed sequence
-        MCUCR = (MCUCR & ~ bit(BODSE)) | bit(BODS);
-#endif
-    }
-    sleep_cpu();
-    sleep_disable();
-    // re-enable what we disabled
-    ADCSRA = adcsraSave;
-}
+// /// @see http://www.nongnu.org/avr-libc/user-manual/group__avr__sleep.html
+// void powerDown ()
+// {
+//     byte adcsraSave = ADCSRA;
+//     ADCSRA &= ~ bit(ADEN); // disable the ADC
+//     // switch off analog comparator - not in Jeelabs' code
+//     ACSR = ACSR & 0x7F; // note if using it then we need to switch this back on when we wake.
+//     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+//     ATOMIC_BLOCK(ATOMIC_FORCEON) {
+//         sleep_enable();
+//         // sleep_bod_disable(); // can't use this - not in my avr-libc version!
+// #ifdef BODSE
+//         MCUCR = MCUCR | bit(BODSE) | bit(BODS); // timed sequence
+//         MCUCR = (MCUCR & ~ bit(BODSE)) | bit(BODS);
+// #endif
+//     }
+//     sleep_cpu();
+//     sleep_disable();
+//     // re-enable what we disabled
+//     ADCSRA = adcsraSave;
+// }
 
-byte LLAPSerial::sleepForaWhile (word msecs) {
-    byte ok = 1;
-    word msleft = msecs;
-    // only slow down for periods longer than the watchdog granularity
-    while (msleft >= 16) {
-        char wdp = 0; // wdp 0..9 corresponds to roughly 16..8192 ms
-        // calc wdp as log2(msleft/16), i.e. loop & inc while next value is ok
-        for (word m = msleft; m >= 32; m >>= 1)
-            if (++wdp >= 9)
-                break;
-        watchdogCounter = 0;
-        watchdogInterrupts(wdp);
-        powerDown();
-        watchdogInterrupts(-1); // off
-        // when interrupted, our best guess is that half the time has passed
-        word halfms = 8 << wdp;
-        msleft -= halfms;
-        if (watchdogCounter == 0) {
-            ok = 0; // lost some time, but got interrupted
-            break;
-        }
-        msleft -= halfms;
-    }
-    // adjust the milli ticks, since we will have missed several
-#if defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny85__) || defined (__AVR_ATtiny44__) || defined (__AVR_ATtiny45__)
-    extern volatile unsigned long millis_timer_millis;
-    millis_timer_millis += msecs - msleft;
-#else
-    extern volatile unsigned long timer0_millis;
-    timer0_millis += msecs - msleft;
-#endif
-    return ok; // true if we lost approx the time planned
-}
+// byte LLAPSerial::sleepForaWhile (word msecs)
+// {
+//     byte ok = 1;
+//     word msleft = msecs;
+//     // only slow down for periods longer than the watchdog granularity
+//     while (msleft >= 16) {
+//         char wdp = 0; // wdp 0..9 corresponds to roughly 16..8192 ms
+//         // calc wdp as log2(msleft/16), i.e. loop & inc while next value is ok
+//         for (word m = msleft; m >= 32; m >>= 1)
+//             if (++wdp >= 9)
+//                 break;
+//         watchdogCounter = 0;
+//         watchdogInterrupts(wdp);
+//         powerDown();
+//         watchdogInterrupts(-1); // off
+//         // when interrupted, our best guess is that half the time has passed
+//         word halfms = 8 << wdp;
+//         msleft -= halfms;
+//         if (watchdogCounter == 0) {
+//             ok = 0; // lost some time, but got interrupted
+//             break;
+//         }
+//         msleft -= halfms;
+//     }
+//     // adjust the milli ticks, since we will have missed several
+// #if defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny85__) || defined (__AVR_ATtiny44__) || defined (__AVR_ATtiny45__)
+//     extern volatile unsigned long millis_timer_millis;
+//     millis_timer_millis += msecs - msleft;
+// #else
+//     extern volatile unsigned long timer0_millis;
+//     timer0_millis += msecs - msleft;
+// #endif
+//     return ok; // true if we lost approx the time planned
+// }
 
-void pin2_isr()
-{
-  sleep_disable();
-  detachInterrupt(0);
-}
+// void pin2_isr()
+// {
+//     sleep_disable();
+//     detachInterrupt(0);
+// }
 
-void pin3_isr()
-{
-  sleep_disable();
-  detachInterrupt(1);
-}
+// void pin3_isr()
+// {
+//     sleep_disable();
+//     detachInterrupt(1);
+// }
 
-void LLAPSerial::sleep(byte pinToWakeOn, byte direction, byte bPullup)	// full sleep wake on interrupt - pin is 2 or 3
-{
-  byte adcsraSave = ADCSRA;
-  ADCSRA &= ~ bit(ADEN); // disable the ADC
-  // switch off analog comparator - not in Jeelabs' code
-  ACSR = ACSR & 0x7F; // note if using it then we need to switch this back on when we wake.
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  sleep_enable();
-  if (pinToWakeOn == 2)
-  {
-	pinMode(2,INPUT);
-    if (bPullup) digitalWrite(2,HIGH);		// enable pullup
-	attachInterrupt(0, pin2_isr, direction);
-  }
-  else
-  {
-	pinMode(3,INPUT);
-    if (bPullup) digitalWrite(3,HIGH);		// enable pullup
-	attachInterrupt(1, pin3_isr, direction);
-  }
-  cli();
-  // sleep_bod_disable(); // can't use this - not in my avr-libc version!
-#ifdef BODSE
-    MCUCR = MCUCR | bit(BODSE) | bit(BODS); // timed sequence
-    MCUCR = (MCUCR & ~ bit(BODSE)) | bit(BODS);
-#endif
-  sei();
-  sleep_cpu();	// and wait until we are woken
-  sleep_disable();
-  // re-enable what we disabled
-  ADCSRA = adcsraSave;
-}
+// void LLAPSerial::sleep(byte pinToWakeOn, byte direction, byte bPullup)  // full sleep wake on interrupt - pin is 2 or 3
+// {
+//     byte adcsraSave = ADCSRA;
+//     ADCSRA &= ~ bit(ADEN); // disable the ADC
+//     // switch off analog comparator - not in Jeelabs' code
+//     ACSR = ACSR & 0x7F; // note if using it then we need to switch this back on when we wake.
+//     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+//     sleep_enable();
+//     if (pinToWakeOn == 2) {
+//         pinMode(2, INPUT);
+//         if (bPullup) digitalWrite(2, HIGH);     // enable pullup
+//         attachInterrupt(0, pin2_isr, direction);
+//     } else {
+//         pinMode(3, INPUT);
+//         if (bPullup) digitalWrite(3, HIGH);     // enable pullup
+//         attachInterrupt(1, pin3_isr, direction);
+//     }
+//     cli();
+//     // sleep_bod_disable(); // can't use this - not in my avr-libc version!
+// #ifdef BODSE
+//     MCUCR = MCUCR | bit(BODSE) | bit(BODS); // timed sequence
+//     MCUCR = (MCUCR & ~ bit(BODSE)) | bit(BODS);
+// #endif
+//     sei();
+//     sleep_cpu();  // and wait until we are woken
+//     sleep_disable();
+//     // re-enable what we disabled
+//     ADCSRA = adcsraSave;
+// }
 
 // End of power-saving code.
 //
@@ -374,10 +373,11 @@ void LLAPSerial::sleep(byte pinToWakeOn, byte direction, byte bPullup)	// full s
  time loop() runs, so using delay inside loop can delay
  response.  Multiple bytes of data may be available.
  */
-void serialEvent() {
-	LLAP.SerialEvent();
+void serialEvent()
+{
+    LLAP.SerialEvent();
 }
 
 
-LLAPSerial LLAP;	// declare the instance
+LLAPSerial LLAP;    // declare the instance
 

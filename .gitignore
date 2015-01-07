@@ -213,3 +213,10 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.cppproj
+*.atsuo
+*.atsln
+pgmspace.h
+Visual Micro/Configuration.Debug.vmps.xml
+Visual Micro/Compile.vmps.xml
+Visual Micro/.thermo_control.vsarduino.h
